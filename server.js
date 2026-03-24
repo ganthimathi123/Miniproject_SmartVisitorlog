@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -135,4 +135,4 @@ server.listen(PORT, () => {
 });
 
 module.exports = { io };
->>>>>>> bef748dd58cc032f2e9c5527e21a8411c0f1eadd
+
