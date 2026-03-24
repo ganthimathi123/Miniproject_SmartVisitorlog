@@ -1,0 +1,60 @@
+[
+  {
+    "id": "1771946750921",
+    "email": "230589.ec@rmkec.ac.in",
+    "password": "$2a$10$WH9qoG8F/P2ruPv3I23gnuwoRr62nNV9AABXVvZWw9ZJLpvLebm7S",
+    "nickname": "Keerthi",
+    "language": "english",
+    "voiceProfile": null,
+    "faceId": "FACE_1771946750921_1771989098485",
+    "createdAt": "2026-02-24T15:25:50.921Z",
+    "updatedAt": "2026-02-25T03:11:38.559Z"
+  },
+  {
+    "id": "1771952984108",
+    "email": "admin@smarthome.com",
+    "password": "$2a$10$l119ASAJRwqCm6AEhLPYg.ponmRHoEKEsIYd1EmH8u9M.yI9S3TtK",
+    "nickname": "Administrator",
+    "language": "english",
+    "phone": null,
+    "category": "admin",
+    "voiceProfile": null,
+    "faceId": null,
+    "isAdmin": true,
+    "createdAt": "2026-02-24T17:09:44.108Z",
+    "lastLogin": null,
+    "accessCount": 0
+  },
+  {
+    "id": "1771985157406",
+    "email": "ganthimathiv2006@gmail.com",
+    "password": "$2a$10$rF408L80kWiZQ1wGXFWam.YfA4v52QuLtgEpSq30YVReRsCD515aW",
+    "nickname": "Keerthi",
+    "language": "english",
+    "phone": null,
+    "category": "guest",
+    "voiceProfile": null,
+    "faceId": "FACE_1771985157406_1771985487906",
+    "isAdmin": false,
+    "createdAt": "2026-02-25T02:05:57.406Z",
+    "lastLogin": null,
+    "accessCount": 0,
+    "updatedAt": "2026-02-25T02:11:27.913Z"
+  },
+  {
+    "id": "1771985650872",
+    "email": "sharmila.ec@gmail.com",
+    "password": "$2a$10$xBCsSlVAW32phJWrDB9T0OPO1cLWo/WkNOEmy9GRbeBzRZRrajx4G",
+    "nickname": "Sharmi",
+    "language": "english",
+    "phone": null,
+    "category": "guest",
+    "voiceProfile": null,
+    "faceId": "FACE_1771985650872_1771985709895",
+    "isAdmin": false,
+    "createdAt": "2026-02-25T02:14:10.872Z",
+    "lastLogin": null,
+    "accessCount": 0,
+    "updatedAt": "2026-02-25T02:15:09.915Z"
+  }
+]
