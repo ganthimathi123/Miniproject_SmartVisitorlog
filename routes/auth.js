@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -274,4 +274,4 @@ router.post('/check-phone', async (req, res) => {
 });
 
 module.exports = router;
->>>>>>> bef748dd58cc032f2e9c5527e21a8411c0f1eadd
+
