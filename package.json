@@ -2,10 +2,10 @@
   "name": "smart-home-automation",
   "version": "1.0.0",
   "description": "Smart home automation with facial recognition and voice detection",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "@tensorflow-models/blazeface": "^0.1.0",
