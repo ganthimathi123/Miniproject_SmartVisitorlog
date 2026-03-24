@@ -1,116 +1,158 @@
-<<<<<<< HEAD
-const API_URL = 'http://localhost:3000/api';
-let currentCategory = null;
-let accessRequestId = null;
-let faceDetectionModel = null;
+const express = require('express');
+const router = express.Router();
+const storage = require('../db/storage');
+const { CATEGORIES, CATEGORY_OTPS } = require('../models/Category');
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  initializeCategorySelection();
-  initializePhoneForm();
-  initializeOTPVerification();
-  loadFaceDetectionModel();
+// Store pending OTP requests (in production, use Redis)
+global.pendingOTPs = {};
+global.adminGeneratedOTPs = {};
+
+// Check user
+router.post('/check-user', async (req, res) => {
+  try {
+    const { phoneNumber, email } = req.body;
+
+    const users = storage.readUsers();
+    const user = users.find(u => u.phoneNumber === phoneNumber || u.email === email);
+
+    if (user && user.category && user.category !== CATEGORIES.UNKNOWN) {
+      return res.json({
+        isKnown: true,
+        category: user.category,
+        userId: user.id,
+        name: user.nickname,
+        requiresOTP: true
+      });
+    }
+
+    res.json({
+      isKnown: false,
+      requiresAdminApproval: true
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 });
 
-// Load face detection model
-async function loadFaceDetectionModel() {
+// Verify category OTP
+router.post('/verify-category-otp', async (req, res) => {
   try {
-    faceDetectionModel = await blazeface.load();
-    console.log('Face detection model loaded');
+    const { userId, category, otp } = req.body;
+
+    if (CATEGORY_OTPS[category] === otp) {
+      res.json({
+        verified: true,
+        nextStep: 'face-recognition'
+      });
+    } else {
+      res.status(400).json({
+        verified: false
+      });
+    }
+
   } catch (error) {
-    console.error('Error loading face detection model:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
-}
-
-// Category Selection
-function initializeCategorySelection() {
-  const categoryBtns = document.querySelectorAll('.category-btn');
-  
-  categoryBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentCategory = btn.dataset.category;
-      showScreen('phone-screen');
-    });
-  });
-}
-
-// Phone Form
-function initializePhoneForm() {
-  const form = document.getElementById('phone-form');
-  
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const name = document.getElementById('visitor-name').value;
-    const phone = document.getElementById('phone-number').value;
-    
-    await checkRegistration(name, phone);
-  });
-}
-
-// Check if user is registered
-async function checkRegistration(name, phone) {
-  try {
-    const response = await fetch(`${API_URL}/access/check-registration`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-=======
-const API_URL = 'http://localhost:3000/api';
-let currentCategory = null;
-let accessRequestId = null;
-let faceDetectionModel = null;
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  initializeCategorySelection();
-  initializePhoneForm();
-  initializeOTPVerification();
-  loadFaceDetectionModel();
 });
 
-// Load face detection model
-async function loadFaceDetectionModel() {
+// Request admin approval
+router.post('/request-admin-approval', async (req, res) => {
   try {
-    faceDetectionModel = await blazeface.load();
-    console.log('Face detection model loaded');
-  } catch (error) {
-    console.error('Error loading face detection model:', error);
-  }
-}
+    const { name, phoneNumber, purpose } = req.body;
 
-// Category Selection
-function initializeCategorySelection() {
-  const categoryBtns = document.querySelectorAll('.category-btn');
-  
-  categoryBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentCategory = btn.dataset.category;
-      showScreen('phone-screen');
+    const requestId = `REQ_${Date.now()}`;
+
+    global.pendingOTPs[requestId] = {
+      name,
+      phoneNumber,
+      purpose,
+      status: 'pending'
+    };
+
+    res.json({
+      requestId,
+      status: 'pending'
     });
-  });
-}
 
-// Phone Form
-function initializePhoneForm() {
-  const form = document.getElementById('phone-form');
-  
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const name = document.getElementById('visitor-name').value;
-    const phone = document.getElementById('phone-number').value;
-    
-    await checkRegistration(name, phone);
-  });
-}
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
-// Check if user is registered
-async function checkRegistration(name, phone) {
+// Check approval
+router.get('/check-approval-status/:requestId', (req, res) => {
+  const request = global.pendingOTPs[req.params.requestId];
+
+  if (!request) return res.status(404).json({ message: 'Not found' });
+
+  if (request.status === 'approved') {
+    return res.json({
+      status: 'approved',
+      otp: global.adminGeneratedOTPs[req.params.requestId]
+    });
+  }
+
+  res.json({ status: request.status });
+});
+
+// Admin approve
+router.post('/admin/approve-request', (req, res) => {
+  const { requestId } = req.body;
+
+  const request = global.pendingOTPs[requestId];
+  if (!request) return res.status(404).json({ message: 'Not found' });
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  request.status = 'approved';
+  global.adminGeneratedOTPs[requestId] = otp;
+
+  res.json({ otp });
+});
+
+// Verify admin OTP
+router.post('/verify-admin-otp', (req, res) => {
+  const { requestId, otp } = req.body;
+
+  if (global.adminGeneratedOTPs[requestId] === otp) {
+    return res.json({
+      verified: true,
+      nextStep: 'face-recognition'
+    });
+  }
+
+  res.status(400).json({ verified: false });
+});
+
+// Face verify + unlock
+router.post('/verify-face-and-unlock', async (req, res) => {
   try {
-    const response = await fetch(`${API_URL}/access/check-registration`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
->>>>>>> bef748dd58cc032f2e9c5527e21a8411c0f1eadd
-        phoneNu
+    const { userId, requestId, category } = req.body;
+
+    const faceVerified = true;
+
+    if (faceVerified) {
+      storage.createVisitor({
+        personId: userId || requestId,
+        name: userId
+          ? storage.findUserById(userId)?.nickname
+          : global.pendingOTPs[requestId]?.name,
+        category: category || CATEGORIES.UNKNOWN,
+        accessGranted: true
+      });
+
+      return res.json({
+        success: true,
+        accessGranted: true
+      });
+    }
+
+    res.status(400).json({ success: false });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+module.exports = router;
