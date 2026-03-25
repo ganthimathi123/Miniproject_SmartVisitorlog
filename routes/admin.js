@@ -6,19 +6,19 @@ const jwt = require('jsonwebtoken');
 // Middleware to verify admin
 const adminMiddleware = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  
+
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
   }
-  
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = storage.findUserById(decoded.userId);
-    
+
     if (!user || !user.isAdmin) {
       return res.status(403).json({ message: 'Admin access required' });
     }
-    
+
     req.userId = decoded.userId;
     req.user = user;
     next();
@@ -55,16 +55,15 @@ router.put('/users/:id', adminMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    
-    // Don't allow password updates through this route
+
     delete updates.password;
-    
+
     const user = storage.updateUser(id, updates);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     const { password, ...userWithoutPassword } = user;
     res.json({ message: 'User updated', user: userWithoutPassword });
   } catch (error) {
@@ -77,22 +76,22 @@ router.delete('/users/:id', adminMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const deleted = storage.deleteUser(id);
-    
+
     if (!deleted) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     res.json({ message: 'User deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting user', error: error.message });
   }
 });
 
-// Get all access logs
+// Get access logs
 router.get('/access-logs', adminMiddleware, (req, res) => {
   try {
     const { limit, phone, category } = req.query;
-    
+
     let logs;
     if (phone) {
       logs = storage.getAccessLogsByPhone(phone);
@@ -101,14 +100,14 @@ router.get('/access-logs', adminMiddleware, (req, res) => {
     } else {
       logs = storage.getAccessLogs(limit ? parseInt(limit) : 100);
     }
-    
+
     res.json(logs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching logs', error: error.message });
   }
 });
 
-// Get all requests
+// Get requests
 router.get('/requests', adminMiddleware, (req, res) => {
   try {
     const requests = storage.getAllRequests();
@@ -118,15 +117,15 @@ router.get('/requests', adminMiddleware, (req, res) => {
   }
 });
 
-// Get visitors by date range
+// Visitors by date range
 router.get('/visitors/range', adminMiddleware, (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     if (!startDate || !endDate) {
-      return res.status(400).json({ message: 'Start date and end date required' });
+      return res.status(400).json({ message: 'Start and end date required' });
     }
-    
+
     const visitors = storage.getVisitorsByDateRange(startDate, endDate);
     res.json(visitors);
   } catch (error) {
@@ -134,45 +133,43 @@ router.get('/visitors/range', adminMiddleware, (req, res) => {
   }
 });
 
-// Get visitors by category
+// Visitors by category
 router.get('/visitors/category/:category', adminMiddleware, (req, res) => {
   try {
-    const { category } = req.params;
-    const visitors = storage.getVisitorsByCategory(category);
+    const visitors = storage.getVisitorsByCategory(req.params.category);
     res.json(visitors);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching visitors', error: error.message });
   }
 });
 
-// Cleanup old data
+// Cleanup
 router.post('/cleanup', adminMiddleware, (req, res) => {
   try {
-    const { daysToKeep } = req.body;
-    const result = storage.cleanupOldData(daysToKeep || 30);
-    res.json({ message: 'Cleanup completed', result });
+    const result = storage.cleanupOldData(req.body.daysToKeep || 30);
+    res.json({ message: 'Cleanup done', result });
   } catch (error) {
-    res.status(500).json({ message: 'Error during cleanup', error: error.message });
+    res.status(500).json({ message: 'Cleanup error', error: error.message });
   }
 });
 
-// Export data (backup)
+// Export data
 router.get('/export', adminMiddleware, (req, res) => {
   try {
     const data = {
       users: storage.readUsers().map(u => {
-        const { password, ...userWithoutPassword } = u;
-        return userWithoutPassword;
+        const { password, ...rest } = u;
+        return rest;
       }),
       visitors: storage.getAllVisitors(),
       requests: storage.getAllRequests(),
       accessLogs: storage.getAccessLogs(1000),
       exportedAt: new Date().toISOString()
     };
-    
+
     res.json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Error exporting data', error: error.message });
+    res.status(500).json({ message: 'Export error', error: error.message });
   }
 });
 

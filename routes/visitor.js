@@ -6,7 +6,7 @@ const storage = require('../db/storage');
 router.post('/log', async (req, res) => {
   try {
     const { personId, name, imageUrl, accessGranted, emotionDetected, phone, category } = req.body;
-    
+
     const visitor = storage.createVisitor({
       personId,
       name: name || 'Unknown',
@@ -16,7 +16,7 @@ router.post('/log', async (req, res) => {
       accessGranted,
       emotionDetected
     });
-    
+
     // Also log in access logs
     storage.logAccess({
       personId,
@@ -27,7 +27,7 @@ router.post('/log', async (req, res) => {
       method: 'facial_recognition',
       emotionDetected
     });
-    
+
     res.status(201).json({
       message: 'Visitor logged successfully',
       visitor
