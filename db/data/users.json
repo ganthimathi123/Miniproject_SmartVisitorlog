@@ -19,11 +19,12 @@
     "phone": null,
     "category": "admin",
     "voiceProfile": null,
-    "faceId": null,
+    "faceId": "FACE_1771952984108_1774374733413",
     "isAdmin": true,
     "createdAt": "2026-02-24T17:09:44.108Z",
     "lastLogin": null,
-    "accessCount": 0
+    "accessCount": 0,
+    "updatedAt": "2026-03-24T17:52:13.444Z"
   },
   {
     "id": "1771985157406",

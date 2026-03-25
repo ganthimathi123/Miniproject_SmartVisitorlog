@@ -405,5 +405,16 @@
     "method": "facial_recognition",
     "emotionDetected": "-",
     "timestamp": "2026-02-25T03:30:53.536Z"
+  },
+  {
+    "id": "1774412927068",
+    "personId": "UNKNOWN",
+    "name": "Unknown",
+    "phone": null,
+    "category": "guest",
+    "accessGranted": false,
+    "method": "facial_recognition",
+    "emotionDetected": "-",
+    "timestamp": "2026-03-25T04:28:47.068Z"
   }
 ]

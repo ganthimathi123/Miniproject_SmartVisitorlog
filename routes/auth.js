@@ -4,10 +4,15 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const storage = require('../db/storage');
 
-// Fixed admin credentials
-const ADMIN_EMAIL = 'admin@smarthome.com';
-const ADMIN_PASSWORD = 'Admin@123';
+// Admin credentials from environment variables
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@smarthome.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@123';
 const ADMIN_NICKNAME = 'Administrator';
+
+// Warn if using default credentials
+if (!process.env.ADMIN_PASSWORD) {
+  console.warn('⚠️  WARNING: Using default admin password. Set ADMIN_PASSWORD in .env file!');
+}
 
 // Initialize admin account on startup
 async function initializeAdmin() {
@@ -27,7 +32,9 @@ async function initializeAdmin() {
     });
     console.log('Admin account initialized');
     console.log(`Email: ${ADMIN_EMAIL}`);
-    console.log(`Password: ${ADMIN_PASSWORD}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Password: ${ADMIN_PASSWORD}`);
+    }
   }
 }
 
